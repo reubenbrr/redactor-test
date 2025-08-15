@@ -61,10 +61,9 @@ Redactor.add('plugin', 'private', {
   toggle() {
     this.enabled = this.enabled ? 0 : 1;
     console.log('private.toggle', this.enabled);
-    // this.app.broadcast('observer.change');
     this.updateToolbar();
     this.updateButtons('toggle');
-    this.app.broadcast('observer.change');
+    // this.app.broadcast('observer.change'); // Doesn't seem to force re rendering of buttons
   },
   enable() {
     console.log('private.enable');
