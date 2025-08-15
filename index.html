@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redactor Test</title>
+  <script
+    src="https://code.jquery.com/jquery-3.7.1.min.js"
+    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+    crossorigin="anonymous"></script>
+  <script src="./redactor/redactor.js"></script>
+  <script src="./private.plugin.js"></script>
+  <link rel="stylesheet" href="./redactor/redactor.min.css">
+  <link rel="stylesheet" href="./fonts/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="./fonts/fontawesome-pro/css/all.min.css">
+  <style>
+  body{
+    font-family: sans-serif;
+  }
+  .rx-toolbar-container.private{
+    background: #ccc;
+  }
+  .rx-toolbar, .rx-topbar, .rx-extrabar {
+    .rx-button {
+      &[data-name="private"], &[data-name="public"], &[data-name="privateDisabled"] {
+        width: auto;
+        padding-inline: calc(var(--spacing) * 2);
+        font-size: 16px;
+        &::before {
+          margin-top: -1px;
+          margin-right: -5px;
+          font-size: 16px;
+        }
+      }
+      &[data-name="private"] {
+        &::before {
+          content:  "Private";
+        }
+      }
+      &[data-name="public"] {
+        &::before {
+          content:  "Public";
+        }
+      }
+    }
+  }
+  </style>
+</head>
+<body>
+  <script>
+    $(function(){
+      Redactor.settings = {
+        minHeight: '250px',
+        removeScript: true,
+        removeComments: false,
+        removeNewLines: false,
+        replaceTags: false,
+        cleanOnEnter: false,
+        cleanInlineOnEnter: false,
+        control: false,
+        context: false,
+        toolbar: {
+            hide: ['bold', 'italic', 'deleted', 'moreinline']
+        },
+        popups: {
+            format: ['text', 'h1', 'h2', 'h3', 'bold', 'italic', 'bulletlist', 'numberedlist', 'address', 'code', 'underline', 'sup', 'sub', 'highlight', 'removeinline'],
+            addbar: ['text', 'image', 'table']
+        },
+        table: {
+          template: '<table class="redactor-table"><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr></table>'
+        },
+        plugins: ['private'],
+        theme: $('html').attr('data-bs-theme') === 'dark' ? 'dark' : 'light',
+      }
+      const redactorInstance = Redactor('#redactor');
+
+      $('#external-private-toggle').on('click', function() {
+        console.log('External button clicked to toggle private reply', redactorInstance.app);
+        redactorInstance.app.broadcast('private.toggle');
+        redactorInstance.app.editor.setContent({ 
+          html: '<div class="fakequote"><div class="quote-content">Quote has been inserted</div><cite>by user John Doe</cite></div>',
+          caret: 'end'
+        });
+
+        // redactorInstance.app.editor.insertContent({ 
+        //   html: '<div class="fakequote"><div class="quote-content">Quote has been inserted</div><cite>by user John Doe</cite></div>',
+        //   caret: 'end'
+        // });
+      });
+
+    })
+  </script>
+  <div style="max-width: 800px; margin: 0 auto; font-size: 20px;">
+    <!-- Content goes here -->
+    <h2>Redactor Private Test</h2>
+    <p>
+      <input name="private" type="text" value="0" size="1" readonly>
+      Private Status (initial value of Private is set by this value)
+    </p>
+    <p>
+      Steps to replicate issue:
+      <ol>
+        <li>Click the "Toggle Private Plugin" button to change the state.</li>
+        <li>Observe that the private reply toggle icon updates correctly.</li>
+        <li>Click the "Eye" icon to toggle the private reply state.</li>
+        <li>Observe that the plugin <code>private.enabled</code> value changes, but the button observer adds two buttons which are conflicting with the <code>private.enabled</code> state</li>
+      </ol>
+    </p>
+    <p>It seems that the <code>extrabar.button</code> observer does not update correctly when the private reply is toggled. Only <code>app.editor.setContent</code> and <code>app.editor.insertContent</code> are forcing the button observer to update correctly.</p>
+    <p>I have tried various combinations of adding and removing extrabar buttons, but no combination seems to work. The observer seems to work best, but is not updating correctly from within the plugin when clicking the buttons and running </code>plugin.toggle</code></p>
+    <button id="external-private-toggle" style="padding: 1rem; font-size: 30px;margin-bottom: 10px;">Toggle Private Plugin</button>
+    <div class="reply-box">
+      <textarea id="redactor" name="content" rows="10" cols="30">
+        This is a test content for the Redactor editor.
+      </textarea>
+    </div>
+    <div class="reply_type" style="display:none; padding: 1rem; border-radius: 5px; margin: .5rem 0; border: 1px solid #ccc; background: rgba(255, 208, 0, 0.1)">
+      Reply is not private, notifications will be sent to all users.
+    </div>
+  </div>
+</body>
+</html>
